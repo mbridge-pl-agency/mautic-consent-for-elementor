@@ -1,0 +1,33 @@
+[
+  {
+    "id": "section1",
+    "elType": "section",
+    "elements": [
+      {
+        "id": "col1",
+        "elType": "column",
+        "elements": [
+          {
+            "id": "form_abc",
+            "elType": "widget",
+            "widgetType": "form",
+            "settings": {
+              "form_name": "Kontakt",
+              "form_fields": [
+                { "custom_id": "name",    "field_label": "Imię" },
+                { "custom_id": "email",   "field_label": "Email" },
+                { "custom_id": "message", "field_label": "Wiadomość" }
+              ]
+            }
+          },
+          {
+            "id": "heading_x",
+            "elType": "widget",
+            "widgetType": "heading",
+            "settings": { "title": "Hello" }
+          }
+        ]
+      }
+    ]
+  }
+]
