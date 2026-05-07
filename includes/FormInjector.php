@@ -26,7 +26,7 @@ final class FormInjector
             : strip_tags( $consent_text, '<a><strong><em><br>' );
 
         $checkbox = sprintf(
-            '<div class="elementor-field-group elementor-column elementor-col-100 wpme-consent-group"><label for="%1$s" class="wpme-consent-label" style="text-transform:none;font-weight:normal;letter-spacing:normal;font-size:14px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" name="form_fields[%2$s]" id="%1$s" value="1" class="wpme-consent-input" style="margin-top:3px;flex-shrink:0"> <span>%3$s</span></label></div>',
+            '<div class="elementor-field-group elementor-column elementor-col-100 elementor-field-subgroup wpme-consent-group"><span class="elementor-field-option"><input type="checkbox" name="form_fields[%2$s]" id="%1$s" class="elementor-field elementor-size-md elementor-acceptance-field wpme-consent-input" value="1"><label for="%1$s" class="wpme-consent-label">%3$s</label></span></div>',
             self::FIELD_ID,
             $field_name,
             $clean_text

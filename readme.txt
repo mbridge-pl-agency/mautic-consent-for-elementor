@@ -4,7 +4,7 @@ Tags: mautic, elementor, gdpr, consent, newsletter
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: GPLv2 or later
 
 Auto-injects a marketing-consent checkbox into all Elementor Pro forms and syncs opt-ins to Mautic via OAuth2 API.
@@ -27,6 +27,9 @@ Features:
 4. In WP admin → Settings → Mautic Consent, fill the form and click Test Connection.
 
 == Changelog ==
+
+= 0.1.2 =
+* Refactored injected checkbox HTML to match Elementor's native acceptance field structure (uses elementor-field-subgroup, elementor-field-option, elementor-acceptance-field classes). The checkbox now inherits Elementor's native styling automatically — no inline styles needed. Custom CSS may need adjustment if it targets the old structure.
 
 = 0.1.1 =
 * Polylang integration: consent text is now translatable via Languages → Strings translations.
