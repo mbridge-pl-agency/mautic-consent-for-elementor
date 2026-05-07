@@ -32,30 +32,25 @@ final class FormInjector
             $clean_text
         );
 
+        // Highest priority: before reCAPTCHA info HTML field (so order is: fields → consent → recaptcha info → submit).
+        $pattern_recaptcha = '#(<div[^>]*elementor-field-type-html[^>]*>)(?=\s*<span[^>]*class="recaptcha-info")#';
+        // Standard: before the submit field-group div.
         $pattern_standard  = '#(<div[^>]*elementor-field-type-submit(?![\w-])[^>]*>)#';
+        // Optimized markup mode: bare button.
         $pattern_optimized = '#(<button[^>]*type="submit"[^>]*>)#';
 
-        $count   = 0;
-        $result  = preg_replace_callback(
-            $pattern_standard,
-            static fn( array $m ): string => $checkbox . $m[1],
-            $html,
-            1,
-            $count
-        );
-        if ( $count > 0 && is_string( $result ) ) {
-            return $result;
-        }
-
-        $result = preg_replace_callback(
-            $pattern_optimized,
-            static fn( array $m ): string => $checkbox . $m[1],
-            $html,
-            1,
-            $count
-        );
-        if ( $count > 0 && is_string( $result ) ) {
-            return $result;
+        $count = 0;
+        foreach ( [ $pattern_recaptcha, $pattern_standard, $pattern_optimized ] as $pattern ) {
+            $result = preg_replace_callback(
+                $pattern,
+                static fn( array $m ): string => $checkbox . $m[1],
+                $html,
+                1,
+                $count
+            );
+            if ( $count > 0 && is_string( $result ) ) {
+                return $result;
+            }
         }
 
         return $html;

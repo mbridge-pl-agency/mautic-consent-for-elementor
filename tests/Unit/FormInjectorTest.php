@@ -74,4 +74,27 @@ final class FormInjectorTest extends TestCase
         $this->assertStringContainsString( 'Save $10 today', $out );
         $this->assertStringContainsString( 'elementor-field-type-submit', $out );
     }
+
+    public function test_inject_into_form_with_recaptcha_inserts_before_recaptcha_info(): void
+    {
+        $html = '<form>'
+            . '<div class="elementor-field-group elementor-field-type-text"></div>'
+            . '<div class="elementor-field-type-html elementor-field-group elementor-column elementor-col-100">'
+            . '<span class="recaptcha-info">This site is protected by reCAPTCHA</span>'
+            . '</div>'
+            . '<div class="elementor-field-group elementor-field-type-submit"><button type="submit">Send</button></div>'
+            . '</form>';
+
+        $out = FormInjector::inject( $html, 'I consent', 'mautic_consent' );
+
+        $consent_pos  = strpos( $out, 'mautic_consent' );
+        $recaptcha_pos = strpos( $out, 'recaptcha-info' );
+        $submit_pos   = strpos( $out, 'elementor-field-type-submit' );
+
+        $this->assertNotFalse( $consent_pos );
+        $this->assertNotFalse( $recaptcha_pos );
+        $this->assertNotFalse( $submit_pos );
+        $this->assertLessThan( $recaptcha_pos, $consent_pos, 'Consent must appear before reCAPTCHA info' );
+        $this->assertLessThan( $submit_pos, $recaptcha_pos, 'reCAPTCHA info should still be before submit' );
+    }
 }
