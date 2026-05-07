@@ -32,15 +32,18 @@ final class FormInjector
             $clean_text
         );
 
-        // Highest priority: before reCAPTCHA info HTML field (so order is: fields → consent → recaptcha info → submit).
-        $pattern_recaptcha = '#(<div[^>]*elementor-field-type-html[^>]*>)(?=\s*<span[^>]*class="recaptcha-info")#';
+        // Highest priority: before any Elementor reCAPTCHA field (v2, v3 invisible widget, etc).
+        // The class can be 'elementor-field-type-recaptcha' (v2) or 'elementor-field-type-recaptcha_v3'.
+        $pattern_recaptcha_field = '#(<div[^>]*\belementor-field-type-recaptcha(?:_v\d+)?\b[^>]*>)#';
+        // Next: before reCAPTCHA info HTML field (text notice that may appear separately).
+        $pattern_recaptcha_info  = '#(<div[^>]*elementor-field-type-html[^>]*>)(?=\s*<span[^>]*class="recaptcha-info")#';
         // Standard: before the submit field-group div.
         $pattern_standard  = '#(<div[^>]*elementor-field-type-submit(?![\w-])[^>]*>)#';
         // Optimized markup mode: bare button.
         $pattern_optimized = '#(<button[^>]*type="submit"[^>]*>)#';
 
         $count = 0;
-        foreach ( [ $pattern_recaptcha, $pattern_standard, $pattern_optimized ] as $pattern ) {
+        foreach ( [ $pattern_recaptcha_field, $pattern_recaptcha_info, $pattern_standard, $pattern_optimized ] as $pattern ) {
             $result = preg_replace_callback(
                 $pattern,
                 static fn( array $m ): string => $checkbox . $m[1],
