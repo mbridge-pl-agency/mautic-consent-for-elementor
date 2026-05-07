@@ -73,13 +73,37 @@ final class SubmissionHandler
 
     private function source_label( string $form_name ): string
     {
-        $referer = '';
+        $url = $this->detect_page_url();
+        return $url !== '' ? $form_name . ' — ' . $url : $form_name;
+    }
+
+    private function detect_page_url(): string
+    {
+        // 1. Elementor includes post_id in form submission — most reliable.
+        $post_id = (int) ( $_REQUEST['post_id'] ?? 0 );
+        if ( $post_id > 0 && function_exists( 'get_permalink' ) ) {
+            $permalink = get_permalink( $post_id );
+            if ( is_string( $permalink ) && $permalink !== '' && filter_var( $permalink, FILTER_VALIDATE_URL ) !== false ) {
+                return $permalink;
+            }
+        }
+
+        // 2. WordPress wp_get_referer — handles _wp_http_referer and HTTP_REFERER fallback.
+        if ( function_exists( 'wp_get_referer' ) ) {
+            $referer = wp_get_referer();
+            if ( is_string( $referer ) && $referer !== '' && filter_var( $referer, FILTER_VALIDATE_URL ) !== false ) {
+                return $referer;
+            }
+        }
+
+        // 3. Direct HTTP_REFERER fallback.
         if ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
             $url = (string) $_SERVER['HTTP_REFERER'];
             if ( filter_var( $url, FILTER_VALIDATE_URL ) !== false ) {
-                $referer = $url;
+                return $url;
             }
         }
-        return $referer !== '' ? $form_name . ' — ' . $referer : $form_name;
+
+        return '';
     }
 }

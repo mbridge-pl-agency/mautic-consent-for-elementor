@@ -31,6 +31,7 @@ final class SubmissionHandlerTest extends TestCase
     {
         Monkey\tearDown();
         $_POST = [];
+        $_REQUEST = [];
         unset( $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_X_FORWARDED_FOR'], $_SERVER['HTTP_REFERER'] );
         parent::tearDown();
     }
@@ -143,6 +144,45 @@ final class SubmissionHandlerTest extends TestCase
         ] );
 
         $_POST['form_fields'] = [ 'mautic_consent' => '1' ];
+        $record = new FakeFormRecord(
+            [ 'email' => [ 'value' => 'a@b.com' ] ],
+            [ 'form_name' => 'Kontakt' ]
+        );
+
+        ( new SubmissionHandler( $client, $logger, $settings ) )->handle( $record, null );
+    }
+
+    public function test_source_includes_page_url_from_post_id_when_available(): void
+    {
+        Functions\stubs( [ 'sanitize_title' => fn( $s ) => $s ] );
+        Functions\expect( 'get_permalink' )
+            ->once()
+            ->with( 42 )
+            ->andReturn( 'https://example.com/contact-page' );
+        Functions\stubs( [ 'wp_get_referer' => false ] );
+
+        $client = $this->createMock( MauticClient::class );
+        $client->expects( $this->once() )
+            ->method( 'upsert_contact' )
+            ->with(
+                'a@b.com',
+                $this->callback( fn( $payload ) =>
+                    str_contains( $payload['elementor_consent_source'] ?? '', 'https://example.com/contact-page' )
+                ),
+                $this->anything()
+            )
+            ->willReturn( 1 );
+
+        $logger   = $this->createMock( Logger::class );
+        $settings = $this->createMock( Settings::class );
+        $settings->method( 'is_form_enabled' )->willReturn( true );
+        $settings->method( 'credentials' )->willReturn( [
+            'mautic_url' => 'x', 'client_id' => 'x', 'client_secret' => 'x',
+            'segment_id' => 0, 'tag_prefix' => 'wp-form-', 'http_timeout' => 5,
+        ] );
+
+        $_POST['form_fields'] = [ 'mautic_consent' => '1' ];
+        $_REQUEST['post_id']  = '42';
         $record = new FakeFormRecord(
             [ 'email' => [ 'value' => 'a@b.com' ] ],
             [ 'form_name' => 'Kontakt' ]
