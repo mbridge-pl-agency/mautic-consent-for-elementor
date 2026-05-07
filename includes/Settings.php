@@ -44,17 +44,34 @@ class Settings
         ];
     }
 
-    public function consent_text(): string
+    /**
+     * Returns the stored consent text without translation/filtering.
+     * Used by admin UI and Polylang registration. For frontend rendering use consent_text().
+     */
+    public function consent_text_raw(): string
     {
         $options = get_option( self::OPTION_SETTINGS, self::DEFAULTS );
         $options = is_array( $options ) ? array_merge( self::DEFAULTS, $options ) : self::DEFAULTS;
-        $text    = (string) $options['consent_text'];
-        if ( $text !== '' ) {
-            return $text;
+        return (string) $options['consent_text'];
+    }
+
+    public function consent_text(): string
+    {
+        $text = $this->consent_text_raw();
+        if ( $text === '' ) {
+            $text = function_exists( '__' )
+                ? __( 'I consent to receive marketing communications.', 'mautic-consent-for-elementor' )
+                : 'I consent to receive marketing communications.';
         }
-        return function_exists( '__' )
-            ? __( 'I consent to receive marketing communications.', 'mautic-consent-for-elementor' )
-            : 'I consent to receive marketing communications.';
+        // Polylang string translation: switches text to the current language if a translation exists.
+        if ( function_exists( 'pll__' ) ) {
+            $text = (string) pll__( $text );
+        }
+        // Generic filter for any other multilingual plugin or custom logic.
+        if ( function_exists( 'apply_filters' ) ) {
+            $text = (string) apply_filters( 'wpme_consent_text', $text );
+        }
+        return $text;
     }
 
     public function custom_css(): string

@@ -137,4 +137,13 @@ final class SettingsTest extends TestCase
 
         $this->assertSame( '', ( new Settings() )->custom_css() );
     }
+
+    public function test_consent_text_raw_returns_stored_value_without_translation(): void
+    {
+        Functions\expect( 'get_option' )->andReturn( [
+            'consent_text' => 'Wyrażam zgodę na newsletter',
+        ] );
+
+        $this->assertSame( 'Wyrażam zgodę na newsletter', ( new Settings() )->consent_text_raw() );
+    }
 }

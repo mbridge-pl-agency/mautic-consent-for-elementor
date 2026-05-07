@@ -371,6 +371,16 @@ final class SettingsPage
             . '</code></pre>';
         echo '<p>' . esc_html__( 'Constant values take precedence over the database; UI fields are then disabled with a notice.', 'mautic-consent-for-elementor' ) . '</p>';
 
+        echo '<h2 style="margin-top:30px">' . esc_html__( 'Multilingual sites (Polylang)', 'mautic-consent-for-elementor' ) . '</h2>';
+        echo '<p>' . esc_html__( 'If Polylang is active, the consent text is automatically registered as a translatable string. To translate it:', 'mautic-consent-for-elementor' ) . '</p>';
+        echo '<ol>';
+        echo '<li>' . esc_html__( 'Save the consent text on the Consent text tab.', 'mautic-consent-for-elementor' ) . '</li>';
+        echo '<li>' . esc_html__( 'In the WordPress sidebar, go to Languages → Strings translations.', 'mautic-consent-for-elementor' ) . '</li>';
+        echo '<li>' . esc_html__( 'Filter by group "Mautic Consent for Elementor" to find the consent_text string.', 'mautic-consent-for-elementor' ) . '</li>';
+        echo '<li>' . esc_html__( 'Enter translations for each language. The frontend will pick the right one based on the page language.', 'mautic-consent-for-elementor' ) . '</li>';
+        echo '</ol>';
+        echo '<p>' . esc_html__( 'For other multilingual plugins or custom switching logic, use the wpme_consent_text filter — it receives the rendered text and lets you replace it with anything.', 'mautic-consent-for-elementor' ) . '</p>';
+
         echo '<p style="margin-top:30px;font-size:12px;color:#666">'
             . esc_html__( 'Required custom fields detected by the plugin:', 'mautic-consent-for-elementor' )
             . ' <code>' . esc_html( implode( '</code>, <code>', $required_fields ) ) . '</code>'

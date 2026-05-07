@@ -32,6 +32,7 @@ final class Plugin
         $this->logger   = new Logger( $wpdb );
         $this->scanner  = new FormScanner();
 
+        add_action( 'init', [ $this, 'register_translatable_strings' ] );
         add_filter( 'elementor/widget/render_content', [ $this, 'inject_consent' ], 20, 2 );
         add_action( 'elementor_pro/forms/new_record', [ $this, 'handle_submission' ], 10, 2 );
         add_action( 'wp_head', [ $this, 'output_custom_css' ], 100 );
@@ -78,6 +79,27 @@ final class Plugin
             return;
         }
         echo '<style id="wpme-custom-css">' . wp_strip_all_tags( $css ) . '</style>';
+    }
+
+    public function register_translatable_strings(): void
+    {
+        try {
+            if ( ! function_exists( 'pll_register_string' ) ) {
+                return;
+            }
+            $text = $this->settings->consent_text_raw();
+            if ( $text === '' ) {
+                return;
+            }
+            pll_register_string(
+                'consent_text',
+                $text,
+                'Mautic Consent for Elementor',
+                true
+            );
+        } catch ( \Throwable $e ) {
+            // Translation registration must not break anything.
+        }
     }
 
     public function handle_submission( object $record, ?object $ajax_handler ): void
