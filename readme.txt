@@ -28,6 +28,9 @@ Features:
 
 == Changelog ==
 
+= 0.1.4 =
+* Fixed checkbox HTML structure to truly match Elementor's native acceptance field — added the `elementor-field-type-acceptance` class on the outer wrapper and properly separated the `elementor-field-subgroup` into its own inner div. Without these changes, Elementor's native acceptance-field CSS didn't fully apply.
+
 = 0.1.3 =
 * Inject the consent checkbox BEFORE Elementor's reCAPTCHA info field (when present), so the visual order is: form fields → consent → reCAPTCHA notice → submit. Falls back to existing pre-submit injection when no reCAPTCHA info is detected.
 
