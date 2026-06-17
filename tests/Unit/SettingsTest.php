@@ -146,4 +146,45 @@ final class SettingsTest extends TestCase
 
         $this->assertSame( 'Wyrażam zgodę na newsletter', ( new Settings() )->consent_text_raw() );
     }
+
+    /**
+     * @param array<string, mixed> $map
+     */
+    private function stub_options( string $segment_id, array $map ): void
+    {
+        Functions\when( 'get_option' )->alias( function ( $name, $default = false ) use ( $segment_id, $map ) {
+            if ( $name === 'wpme_segment_map' ) {
+                return $map;
+            }
+            return [ 'segment_id' => $segment_id ];
+        } );
+    }
+
+    public function test_segment_for_language_returns_default_when_lang_null(): void
+    {
+        $this->stub_options( '5', [ 'pl' => 5, 'en' => 7 ] );
+
+        $this->assertSame( 5, ( new Settings() )->segment_for_language( null ) );
+    }
+
+    public function test_segment_for_language_returns_mapped_override(): void
+    {
+        $this->stub_options( '5', [ 'pl' => 5, 'en' => 7 ] );
+
+        $this->assertSame( 7, ( new Settings() )->segment_for_language( 'en' ) );
+    }
+
+    public function test_segment_for_language_falls_back_to_default_when_lang_not_mapped(): void
+    {
+        $this->stub_options( '5', [ 'en' => 7 ] );
+
+        $this->assertSame( 5, ( new Settings() )->segment_for_language( 'de' ) );
+    }
+
+    public function test_segment_for_language_falls_back_when_map_has_zero(): void
+    {
+        $this->stub_options( '5', [ 'en' => 0 ] );
+
+        $this->assertSame( 5, ( new Settings() )->segment_for_language( 'en' ) );
+    }
 }

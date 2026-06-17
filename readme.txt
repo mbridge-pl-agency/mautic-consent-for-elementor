@@ -4,7 +4,7 @@ Tags: mautic, elementor, gdpr, consent, newsletter
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 License: GPLv2 or later
 
 Auto-injects a marketing-consent checkbox into all Elementor Pro forms and syncs opt-ins to Mautic via OAuth2 API.
@@ -27,6 +27,9 @@ Features:
 4. In WP admin → Settings → Mautic Consent, fill the form and click Test Connection.
 
 == Changelog ==
+
+= 0.1.7 =
+* Per-language Mautic segments (Polylang). The Mautic settings tab now shows a "Per-language segments" box listing each Polylang language; set a segment ID to route submissions from pages in that language to a dedicated segment. Languages left blank fall back to the default Segment ID. Language is detected from the submitting page (post_id, with current-language fallback).
 
 = 0.1.6 =
 * Inject the consent checkbox before ANY Elementor reCAPTCHA field type (v2 visible, v3 invisible widget), not just the reCAPTCHA info text. Now the visual order is: form fields → consent → reCAPTCHA elements → submit.

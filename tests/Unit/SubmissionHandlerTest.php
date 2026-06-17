@@ -116,6 +116,7 @@ final class SubmissionHandlerTest extends TestCase
         $settings->method( 'credentials' )->willReturn( [
             'mautic_url' => 'x', 'client_id' => 'x', 'client_secret' => 'x', 'segment_id' => 5, 'tag_prefix' => 'wp-form-',
         ] );
+        $settings->method( 'segment_for_language' )->willReturn( 5 );
 
         $_SERVER['REMOTE_ADDR']  = '1.2.3.4';
         $_POST['form_fields']    = [ 'mautic_consent' => '1' ];
@@ -181,8 +182,44 @@ final class SubmissionHandlerTest extends TestCase
             'segment_id' => 0, 'tag_prefix' => 'wp-form-', 'http_timeout' => 5,
         ] );
 
+        $settings->method( 'segment_for_language' )->willReturn( 0 );
+
         $_POST['form_fields'] = [ 'mautic_consent' => '1' ];
         $_REQUEST['post_id']  = '42';
+        $record = new FakeFormRecord(
+            [ 'email' => [ 'value' => 'a@b.com' ] ],
+            [ 'form_name' => 'Kontakt' ]
+        );
+
+        ( new SubmissionHandler( $client, $logger, $settings ) )->handle( $record, null );
+    }
+
+    public function test_routes_to_language_specific_segment_via_post_id(): void
+    {
+        Functions\stubs( [
+            'sanitize_title'  => fn( $s ) => $s,
+            'get_permalink'   => false,
+            'wp_get_referer'  => false,
+        ] );
+        Functions\when( 'pll_get_post_language' )->justReturn( 'en' );
+
+        $client = $this->createMock( MauticClient::class );
+        $client->method( 'upsert_contact' )->willReturn( 99 );
+        $client->expects( $this->once() )->method( 'add_to_segment' )->with( 99, 7 );
+
+        $logger   = $this->createMock( Logger::class );
+        $settings = $this->createMock( Settings::class );
+        $settings->method( 'is_form_enabled' )->willReturn( true );
+        $settings->method( 'credentials' )->willReturn( [
+            'mautic_url' => 'x', 'client_id' => 'x', 'client_secret' => 'x', 'segment_id' => 5, 'tag_prefix' => 'wp-form-',
+        ] );
+        $settings->expects( $this->once() )
+            ->method( 'segment_for_language' )
+            ->with( 'en' )
+            ->willReturn( 7 );
+
+        $_POST['form_fields'] = [ 'mautic_consent' => '1' ];
+        $_REQUEST['post_id']  = '10';
         $record = new FakeFormRecord(
             [ 'email' => [ 'value' => 'a@b.com' ] ],
             [ 'form_name' => 'Kontakt' ]

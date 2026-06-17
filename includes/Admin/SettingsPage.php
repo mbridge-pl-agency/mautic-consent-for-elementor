@@ -124,8 +124,59 @@ final class SettingsPage
         submit_button();
         echo '</form>';
 
+        $this->render_segment_map_form();
+
         echo '<hr><h2>' . esc_html__( 'Test connection', 'mautic-consent-for-elementor' ) . '</h2>';
         echo '<p><button class="button" id="wpme-test-connection">' . esc_html__( 'Test connection and Mautic fields', 'mautic-consent-for-elementor' ) . '</button> <span id="wpme-test-result"></span></p>';
+    }
+
+    /**
+     * Per-language segment overrides (Polylang). Only shown when Polylang is active.
+     *
+     * Stored in a separate option/group so saving it never wipes the main settings (and
+     * vice-versa). Each language with a value routes its submissions to that segment;
+     * languages left blank fall back to the default Segment ID above.
+     */
+    private function render_segment_map_form(): void
+    {
+        if ( ! function_exists( 'pll_languages_list' ) ) {
+            return;
+        }
+
+        $slugs = pll_languages_list( [ 'fields' => 'slug' ] );
+        $names = pll_languages_list( [ 'fields' => 'name' ] );
+        if ( ! is_array( $slugs ) || $slugs === [] ) {
+            return;
+        }
+        $names = is_array( $names ) ? $names : [];
+
+        $map = get_option( Settings::OPTION_SEGMENT_MAP, [] );
+        $map = is_array( $map ) ? $map : [];
+
+        echo '<hr><h2>' . esc_html__( 'Per-language segments (Polylang)', 'mautic-consent-for-elementor' ) . '</h2>';
+        echo '<p class="description">' . esc_html__( 'Route submissions to a different Mautic segment depending on the page language. Leave a language blank to use the default Segment ID above.', 'mautic-consent-for-elementor' ) . '</p>';
+
+        echo '<form method="post" action="options.php">';
+        settings_fields( 'wpme_segment_group' );
+        echo '<table class="form-table">';
+        foreach ( $slugs as $i => $slug ) {
+            $slug  = (string) $slug;
+            $label = (string) ( $names[ $i ] ?? $slug );
+            $value = isset( $map[ $slug ] ) ? (int) $map[ $slug ] : 0;
+            $this->row(
+                sprintf( '%s (%s)', $label, $slug ),
+                sprintf(
+                    '<input type="number" name="%s[%s]" value="%s" class="small-text" min="1" placeholder="%s">',
+                    esc_attr( Settings::OPTION_SEGMENT_MAP ),
+                    esc_attr( $slug ),
+                    $value > 0 ? esc_attr( (string) $value ) : '',
+                    esc_attr__( 'default', 'mautic-consent-for-elementor' )
+                )
+            );
+        }
+        echo '</table>';
+        submit_button( __( 'Save segments', 'mautic-consent-for-elementor' ) );
+        echo '</form>';
     }
 
     private function render_consent_tab(): void
@@ -380,6 +431,9 @@ final class SettingsPage
         echo '<li>' . esc_html__( 'Enter translations for each language. The frontend will pick the right one based on the page language.', 'mautic-consent-for-elementor' ) . '</li>';
         echo '</ol>';
         echo '<p>' . esc_html__( 'For other multilingual plugins or custom switching logic, use the wpme_consent_text filter — it receives the rendered text and lets you replace it with anything.', 'mautic-consent-for-elementor' ) . '</p>';
+
+        echo '<h3>' . esc_html__( 'Per-language segments', 'mautic-consent-for-elementor' ) . '</h3>';
+        echo '<p>' . esc_html__( 'When Polylang is active, the Mautic tab shows a "Per-language segments" box listing each language. Set a segment ID there to route submissions from pages in that language to a dedicated segment (e.g. Polish pages → Newsletter PL, English pages → Newsletter EN). Languages left blank fall back to the default Segment ID. The language is detected from the page the form was submitted from.', 'mautic-consent-for-elementor' ) . '</p>';
 
         echo '<p style="margin-top:30px;font-size:12px;color:#666">'
             . esc_html__( 'Required custom fields detected by the plugin:', 'mautic-consent-for-elementor' )

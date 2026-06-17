@@ -42,15 +42,44 @@ final class SubmissionHandler
         $contact_data['elementor_consent_source'] = $this->source_label( $form_name );
         $contact_data['elementor_consent_ip']     = $this->client_ip();
 
+        $segment_id = $this->settings->segment_for_language( $this->detect_language() );
+
         try {
             $contact_id = $this->mautic->upsert_contact( $email, $contact_data, [ $tag ] );
-            if ( $creds['segment_id'] > 0 && $contact_id > 0 ) {
-                $this->mautic->add_to_segment( $contact_id, $creds['segment_id'] );
+            if ( $segment_id > 0 && $contact_id > 0 ) {
+                $this->mautic->add_to_segment( $contact_id, $segment_id );
             }
             $this->logger->log( $email, $form_name, 'success', null );
         } catch ( \Throwable $e ) {
             $this->logger->log( $email, $form_name, 'error', $e->getMessage() );
         }
+    }
+
+    /**
+     * Detects the language slug of the submitting page (Polylang).
+     *
+     * Prefers the page the form lives on (post_id is the most reliable signal, same as
+     * detect_page_url) and falls back to the current request language. Returns null when
+     * Polylang is inactive — the caller then uses the default segment for everyone.
+     */
+    private function detect_language(): ?string
+    {
+        $post_id = (int) ( $_REQUEST['post_id'] ?? 0 );
+        if ( $post_id > 0 && function_exists( 'pll_get_post_language' ) ) {
+            $lang = pll_get_post_language( $post_id, 'slug' );
+            if ( is_string( $lang ) && $lang !== '' ) {
+                return $lang;
+            }
+        }
+
+        if ( function_exists( 'pll_current_language' ) ) {
+            $lang = pll_current_language( 'slug' );
+            if ( is_string( $lang ) && $lang !== '' ) {
+                return $lang;
+            }
+        }
+
+        return null;
     }
 
     private function client_ip(): string

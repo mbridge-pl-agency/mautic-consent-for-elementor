@@ -58,6 +58,15 @@ final class Admin
                 'default'           => [],
             ]
         );
+        register_setting(
+            'wpme_segment_group',
+            Settings::OPTION_SEGMENT_MAP,
+            [
+                'type'              => 'array',
+                'sanitize_callback' => [ $this, 'sanitize_segment_map' ],
+                'default'           => [],
+            ]
+        );
     }
 
     /**
@@ -96,6 +105,25 @@ final class Admin
         $out = [];
         foreach ( $input as $key => $value ) {
             $out[ sanitize_text_field( (string) $key ) ] = (bool) $value;
+        }
+        return $out;
+    }
+
+    /**
+     * @param mixed $input
+     * @return array<string, int>
+     */
+    public function sanitize_segment_map( $input ): array
+    {
+        if ( ! is_array( $input ) ) {
+            return [];
+        }
+        $out = [];
+        foreach ( $input as $lang => $segment_id ) {
+            $id = absint( (int) $segment_id );
+            if ( $id > 0 ) {
+                $out[ sanitize_key( (string) $lang ) ] = $id;
+            }
         }
         return $out;
     }

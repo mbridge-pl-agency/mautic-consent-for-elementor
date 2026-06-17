@@ -7,6 +7,7 @@ class Settings
 {
     public const OPTION_SETTINGS       = 'wpme_settings';
     public const OPTION_ENABLED_FORMS  = 'wpme_enabled_forms';
+    public const OPTION_SEGMENT_MAP    = 'wpme_segment_map';
 
     public const DEFAULTS = [
         'mautic_url'          => '',
@@ -93,6 +94,27 @@ class Settings
             return 30;
         }
         return $timeout;
+    }
+
+    /**
+     * Resolves the Mautic segment for a given language slug.
+     *
+     * Per-language overrides (OPTION_SEGMENT_MAP, e.g. [ 'pl' => 5, 'en' => 7 ]) take
+     * precedence; if no override exists for the language the default segment_id is used.
+     * Returns 0 when nothing is configured, which the caller treats as "do not segment".
+     */
+    public function segment_for_language( ?string $lang ): int
+    {
+        $default = $this->credentials()['segment_id'];
+        if ( $lang === null || $lang === '' ) {
+            return $default;
+        }
+        $map = get_option( self::OPTION_SEGMENT_MAP, [] );
+        if ( ! is_array( $map ) ) {
+            return $default;
+        }
+        $id = (int) ( $map[ $lang ] ?? 0 );
+        return $id > 0 ? $id : $default;
     }
 
     public function is_form_enabled( string $form_name ): bool
